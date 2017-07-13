@@ -81,7 +81,9 @@ public:
   
   //measurement covariance matrices
   MatrixXd S_;
+  MatrixXd S_ivnerse_;
   MatrixXd S_lidar_;
+  MatrixXd S_ivnerse_lidar_;
   
   //Measurement noise covariance matrices
   MatrixXd R_;
@@ -96,8 +98,8 @@ public:
   VectorXd z_pred_lidar_;
   
   //NIS
-  double Radar_NIS;
-  double Lidar_NIS;
+  double Radar_NIS_;
+  double Lidar_NIS_;
 
   /**
    * Constructor

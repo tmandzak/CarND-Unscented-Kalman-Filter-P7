@@ -397,7 +397,7 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   }
 
   //Kalman gain K;
-  S_ivnerse_lidar_ = S_lidar_.inverse()
+  S_ivnerse_lidar_ = S_lidar_.inverse();
   MatrixXd K = Tc * S_ivnerse_lidar_;
 
   VectorXd z = VectorXd(n_z_lidar_);
