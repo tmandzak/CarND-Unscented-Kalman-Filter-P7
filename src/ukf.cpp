@@ -77,9 +77,9 @@ UKF::UKF() {
   
   //Measurement covariance matrices
   S_ = MatrixXd(n_z_, n_z_);
-  S_ivnerse_ = MatrixXd(n_z_, n_z_);
+  S_inverse_ = MatrixXd(n_z_, n_z_);
   S_lidar_ = MatrixXd(n_z_lidar_, n_z_lidar_);
-  S_ivnerse_lidar_ = MatrixXd(n_z_lidar_, n_z_lidar_);
+  S_inverse_lidar_ = MatrixXd(n_z_lidar_, n_z_lidar_);
   
   //Measurement noise covariance matrices
   R_ = MatrixXd(n_z_, n_z_);
@@ -108,7 +108,10 @@ UKF::UKF() {
   z_pred_ = VectorXd(n_z_);
   z_pred_lidar_ = VectorXd(n_z_lidar_);
   
-
+  //measurements
+  z_ = VectorXd(n_z_);
+  z_lidar_ = VectorXd(n_z_lidar_);
+  
   ///* time when the state is true, in us
   time_us_ = 0.0;
 
@@ -402,26 +405,24 @@ void UKF::UpdateLidar(MeasurementPackage meas_package) {
   }
 
   //Kalman gain K;
-  S_ivnerse_lidar_ = S_lidar_.inverse();
-  MatrixXd K = Tc * S_ivnerse_lidar_;
+  S_inverse_lidar_ = S_lidar_.inverse();
+  MatrixXd K = Tc * S_inverse_lidar_;
 
-  VectorXd z = VectorXd(n_z_lidar_);
-  z = meas_package.raw_measurements_;  
+  
+  z_lidar_ = meas_package.raw_measurements_;  
   
   //residual
-  VectorXd z_diff = z - z_pred_lidar_;
+  VectorXd z_diff = z_lidar_ - z_pred_lidar_;
 
   //angle normalization
   z_diff(1) = AngleNormalization(z_diff(1));
-  //while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
-  //while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
 
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S_lidar_ * K.transpose();  
   
   //calculate the lidar NIS
-  Lidar_NIS_ = z_diff.transpose() * S_ivnerse_lidar_ * z_diff;
+  Lidar_NIS_ = z_diff.transpose() * S_inverse_lidar_ * z_diff;
     
 }
 
@@ -463,8 +464,6 @@ void UKF::PredictRadarMeasurement() {
 
     //angle normalization
     z_diff(1) = AngleNormalization(z_diff(1));
-    //while (z_diff(1) > M_PI) z_diff(1) -= 2.*M_PI;
-    //while (z_diff(1) <-M_PI) z_diff(1) += 2.*M_PI;
 
     S_ = S_ + weights_(i) * z_diff * z_diff.transpose();
   }
@@ -505,32 +504,27 @@ void UKF::UpdateRadar(MeasurementPackage meas_package) {
     VectorXd x_diff = Xsig_pred_.col(i) - x_;
     //angle normalization
     x_diff(3) = AngleNormalization(x_diff(3));
-    //while (x_diff(3)> M_PI) x_diff(3)-=2.*M_PI;
-    //while (x_diff(3)<-M_PI) x_diff(3)+=2.*M_PI;
 
     Tc = Tc + weights_(i) * x_diff * z_diff.transpose();
   }
 
   //Kalman gain K;
-  S_ivnerse_ = S_.inverse();
-  MatrixXd K = Tc * S_ivnerse_;
+  S_inverse_ = S_.inverse();
+  MatrixXd K = Tc * S_inverse_;
 
-  VectorXd z = VectorXd(n_z_);
-  z = meas_package.raw_measurements_;  
+  z_ = meas_package.raw_measurements_;  
   
   //residual
-  VectorXd z_diff = z - z_pred_;
+  VectorXd z_diff = z_ - z_pred_;
 
   //angle normalization
   z_diff(1) = AngleNormalization(z_diff(1));
-  //while (z_diff(1)> M_PI) z_diff(1)-=2.*M_PI;
-  //while (z_diff(1)<-M_PI) z_diff(1)+=2.*M_PI;
 
   //update state mean and covariance matrix
   x_ = x_ + K * z_diff;
   P_ = P_ - K * S_ * K.transpose();  
   
   //calculate the radar NIS
-  Radar_NIS_ = z_diff.transpose() * S_ivnerse_ * z_diff;
+  Radar_NIS_ = z_diff.transpose() * S_inverse_ * z_diff;
   
 }
