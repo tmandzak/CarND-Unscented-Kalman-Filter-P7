@@ -128,6 +128,8 @@ public:
   void PredictMeanAndCovariance();
   
   void Prediction(double delta_t);
+  
+  double AngleNormalization(double angle);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
