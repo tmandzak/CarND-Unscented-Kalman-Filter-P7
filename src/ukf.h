@@ -27,6 +27,12 @@ public:
 
   ///* state covariance matrix
   MatrixXd P_;
+  
+  //Sigma point matrix
+  MatrixXd Xsig_;
+  
+  //Augmented sigma point matrix
+  MatrixXd Xsig_aug_;
 
   ///* predicted sigma points matrix
   MatrixXd Xsig_pred_;
@@ -60,13 +66,38 @@ public:
 
   ///* State dimension
   int n_x_;
+  
+  //Radar measurement dimension, radar can measure r, phi, and r_dot
+  int  n_z_;
+  
+  //Lidar measurement dimension, lidar can measure px, py
+  int  n_z_lidar_;
 
   ///* Augmented state dimension
   int n_aug_;
-
+  
   ///* Sigma point spreading parameter
   double lambda_;
-
+  
+  //measurement covariance matrices
+  MatrixXd S_;
+  MatrixXd S_lidar_;
+  
+  //Measurement noise covariance matrices
+  MatrixXd R_;
+  MatrixXd R_lidar_;
+  
+  //matrices for sigma points in measurement space
+  MatrixXd Zsig_;
+  MatrixXd Zsig_lidar_;
+  
+  //mean predicted measurement
+  VectorXd z_pred_;
+  VectorXd z_pred_lidar_;
+  
+  //NIS
+  double Radar_NIS;
+  double Lidar_NIS;
 
   /**
    * Constructor
@@ -89,18 +120,27 @@ public:
    * matrix
    * @param delta_t Time between k and k+1 in s
    */
+  void GenerateSigmaPoints();
+  void AugmentedSigmaPoints();
+  void SigmaPointPrediction(double delta_t);
+  void PredictMeanAndCovariance();
+  
   void Prediction(double delta_t);
 
   /**
    * Updates the state and the state covariance matrix using a laser measurement
    * @param meas_package The measurement at k+1
    */
+  void PredictRadarMeasurement();
+  
   void UpdateLidar(MeasurementPackage meas_package);
 
   /**
    * Updates the state and the state covariance matrix using a radar measurement
    * @param meas_package The measurement at k+1
    */
+  void PredictLidarMeasurement();
+  
   void UpdateRadar(MeasurementPackage meas_package);
 };
 
